@@ -1,5 +1,5 @@
 from datetime import datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import pytest
 
@@ -56,3 +56,11 @@ def test_classify_by_year_uses_modification_time(tmp_path: Path) -> None:
 def test_unknown_rule_is_rejected() -> None:
     with pytest.raises(ValueError, match="Unsupported organization rule"):
         classify_file(Path("sample.txt"), "unknown")
+
+
+@pytest.mark.parametrize(
+    "path",
+    [PureWindowsPath(r"C:\Users\Example\PHOTO.JPG"), PurePosixPath("/home/example/PHOTO.JPG")],
+)
+def test_type_classification_supports_platform_path_styles(path: Path) -> None:
+    assert classify_by_type(path) == "Images"
