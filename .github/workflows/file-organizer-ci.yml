@@ -1,6 +1,7 @@
 name: File Organizer CI
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "file-organizer/**"
@@ -44,5 +45,8 @@ jobs:
       - name: Run Ruff
         run: python -m ruff check src tests
 
-      - name: Run pytest
-        run: python -m pytest
+      - name: Check formatting
+        run: python -m ruff format --check src tests
+
+      - name: Run tests with coverage
+        run: python -m pytest --cov=file_organizer --cov-report=term-missing --cov-fail-under=85
