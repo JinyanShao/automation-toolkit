@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 from .classifiers import Rule
@@ -53,7 +54,7 @@ def main(argv: list[str] | None = None) -> int:
             conflict_strategy=args.conflict,
         )
     except (FileOrganizerError, OSError) as exc:
-        print(f"ERROR: {exc}")
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
     print(

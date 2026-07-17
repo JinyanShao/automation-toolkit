@@ -1,23 +1,34 @@
 # File Organizer
 
+[![Tests](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml/badge.svg)](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml)
+[![Coverage threshold](https://img.shields.io/badge/coverage-85%25_minimum-brightgreen.svg)](pyproject.toml)
+
 A small, reliable command-line tool that organizes the visible, top-level files in a directory. It supports classification by file type, file size, or modification year and never overwrites an existing file.
 
 ## Safety behavior
 
 - Only top-level regular files are scanned; subdirectories are never traversed.
 - Hidden files (names beginning with `.`) are ignored.
+- Symbolic links are ignored, even when they point to regular files.
 - Destination directories are skipped naturally because directories are not scan candidates.
 - `--dry-run` previews every planned move without creating directories or changing files.
 - Existing destination files are skipped by default.
 - `--conflict rename` preserves both files by choosing names such as `report (1).txt`.
+- A source and destination that refer to the same file object are always skipped.
 - The destination is checked again immediately before each move to reduce overwrite risk.
+- Existing destination content is never overwritten by any conflict strategy.
+
+## Reversibility
+
+File Organizer does not keep an automatic recovery log and does not provide an undo command. Always run with `--dry-run` first, review the complete plan, and keep a backup when organizing important files. If a run is applied, reversing it requires moving the files back manually.
 
 ## Requirements
 
 - Python 3.10 or newer
 - No runtime dependencies outside the Python standard library
 - pytest 8 or newer for tests
-- Ruff for linting and import checks
+- pytest-cov for coverage checks
+- Ruff for linting, complexity checks, and formatting
 
 ## Installation
 
@@ -91,19 +102,20 @@ No strategy overwrites an existing destination.
 
 ## Development
 
-Run the test suite from this directory:
+Run the test suite with the same coverage gate used in CI:
 
 ```bash
-python3 -m pytest
+python3 -m pytest --cov=file_organizer --cov-report=term-missing --cov-fail-under=85
 ```
 
 Run Ruff against the package and tests:
 
 ```bash
 python3 -m ruff check src tests
+python3 -m ruff format --check src tests
 ```
 
-The repository's [GitHub Actions workflow](../.github/workflows/file-organizer-ci.yml) runs both checks on Linux, macOS, and Windows.
+The repository's [GitHub Actions workflow](../.github/workflows/file-organizer-ci.yml) runs linting, formatting, tests, and coverage checks on Linux, macOS, and Windows. It can also be started manually from the Actions tab.
 
 The implementation is separated by responsibility:
 
