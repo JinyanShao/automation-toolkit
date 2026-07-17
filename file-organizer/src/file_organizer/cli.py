@@ -15,7 +15,11 @@ def build_parser() -> argparse.ArgumentParser:
         prog="file-organizer",
         description="Organize visible files in a directory safely and predictably.",
     )
-    parser.add_argument("directory", type=Path, help="directory whose top-level files are organized")
+    parser.add_argument(
+        "directory",
+        type=Path,
+        help="directory whose top-level files are organized",
+    )
     parser.add_argument(
         "--rule",
         choices=RULES,
