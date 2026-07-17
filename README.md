@@ -1,2 +1,2 @@
-# my_dev_projects
+# automation-toolkit
 A collection of my Python development projects, focusing on data analysis, automation, and foundational software engineering concepts.
