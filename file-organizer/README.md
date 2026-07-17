@@ -83,6 +83,45 @@ If the package is not installed, run it from the project directory with:
 PYTHONPATH=src python3 -m file_organizer.cli ~/Downloads --dry-run
 ```
 
+## Example Output
+
+A dry run prints planned operations without changing the filesystem:
+
+```text
+[DRY RUN] directory=/Users/example/Downloads rule=type conflict=skip
+WOULD MOVE photo.jpg -> /Users/example/Downloads/Images/photo.jpg
+WOULD MOVE report.pdf -> /Users/example/Downloads/Documents/report.pdf
+Summary: planned=2 moved=0 skipped=0 failed=0
+```
+
+Errors are written to stderr. Normal operations and the final summary are written to stdout.
+
+## Before and After
+
+Before running type-based organization:
+
+```text
+Downloads/
+├── .notes.txt
+├── photo.jpg
+├── report.pdf
+└── existing-folder/
+```
+
+After running `file-organizer ~/Downloads`:
+
+```text
+Downloads/
+├── .notes.txt
+├── Documents/
+│   └── report.pdf
+├── Images/
+│   └── photo.jpg
+└── existing-folder/
+```
+
+The hidden file and existing directory remain unchanged.
+
 ## Organization rules
 
 | Rule | Destination examples |
@@ -99,6 +138,25 @@ PYTHONPATH=src python3 -m file_organizer.cli ~/Downloads --dry-run
 | `rename` | Move the source using the first available numbered filename. |
 
 No strategy overwrites an existing destination.
+
+## Exit Codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | The command completed without file-operation failures. A successful dry run also returns `0`. |
+| `1` | At least one planned file move failed; other independent moves may have completed. |
+| `2` | The command could not start or finish planning because of invalid input or an application-level filesystem error. |
+
+## Limitations
+
+- Organization is intentionally non-recursive; files inside subdirectories are not scanned.
+- Hidden files and symbolic links are ignored.
+- File-type classification uses the final suffix, so `archive.tar.gz` is classified from `.gz`.
+- Year classification uses the file's modification year in the local timezone.
+- Size thresholds use binary units: 1 MiB equals 1,048,576 bytes.
+- Rules and file-type mappings are defined by the package and are not loaded from a user configuration file.
+- Concurrent filesystem changes can cause a file to be skipped or reported as failed.
+- The tool does not produce an operation report, recovery log, or automatic undo record.
 
 ## Development
 
