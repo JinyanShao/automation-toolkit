@@ -1,9 +1,26 @@
 # Automation Toolkit
 
 [![Tests](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml/badge.svg)](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.14-blue.svg)](file-organizer/pyproject.toml)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Coverage threshold](https://img.shields.io/badge/coverage-85%25_minimum-brightgreen.svg)](file-organizer/pyproject.toml)
 
-A collection of practical Python command-line tools designed to replace repetitive file-management and operational workflows with predictable, reusable automation.
+Practical Python command-line tools for safe file management and repeatable workflow automation.
+
+## Core Features
+
+- Safe, non-recursive file organization by type, size, or modification year
+- Dry-run previews before any directory is created or file is moved
+- Explicit filename conflict handling without overwriting existing content
+- Cross-platform tests on Ubuntu, macOS, and Windows
+
+## Quick Example
+
+```bash
+cd file-organizer
+python3 -m pip install -e .
+file-organizer ~/Downloads --dry-run
+```
 
 ## Current Tool
 
@@ -102,14 +119,11 @@ The [GitHub Actions workflow](.github/workflows/file-organizer-ci.yml) runs lint
 
 ## Roadmap
 
-Planned work is listed here rather than represented as existing project structure:
+- Continue stabilizing File Organizer across supported platforms.
+- Define and develop Log Analyzer as the next practical tool.
+- Consider CSV Cleaner after its workflow and interface are clearly specified.
 
-1. Complete and stabilize File Organizer across supported platforms.
-2. Add `log-analyzer` as the preferred second tool.
-3. Consider `csv-cleaner` after a clear workflow and interface are defined.
-4. Add `batch-renamer`, shared utilities, or repository-wide tests only when real reuse cases require them.
-
-Features will be added only when they represent a practical and clearly defined automation use case.
+Planned tools remain roadmap items until working implementations exist.
 
 ## Technology
 
