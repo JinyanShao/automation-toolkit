@@ -1,2 +1,2 @@
 # automation-toolkit
-A collection of my Python development projects, focusing on data analysis, automation, and foundational software engineering concepts.
+Practical Python tools for automating file management and repetitive operational workflows.
