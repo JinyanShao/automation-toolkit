@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 from file_organizer.classifiers import ONE_MIB, Rule
-from file_organizer.exceptions import InvalidDirectoryError
+from file_organizer.exceptions import ClassificationError, InvalidDirectoryError
 from file_organizer.organizer import (
     ConflictStrategy,
     MovePlan,
@@ -23,6 +23,18 @@ def test_scan_files_skips_hidden_files_and_directories(tmp_path: Path) -> None:
     (destination / "old.txt").write_text("old", encoding="utf-8")
 
     assert scan_files(tmp_path) == [visible]
+
+
+def test_scan_files_skips_symbolic_links(tmp_path: Path) -> None:
+    target = tmp_path / "target.txt"
+    target.write_text("content", encoding="utf-8")
+    link = tmp_path / "link.txt"
+    try:
+        link.symlink_to(target)
+    except OSError:
+        pytest.skip("symbolic links are not available on this platform")
+
+    assert scan_files(tmp_path) == [target]
 
 
 def test_dry_run_does_not_change_filesystem(tmp_path: Path) -> None:
@@ -141,11 +153,13 @@ def test_move_failure_is_reported_without_losing_source(
         raise PermissionError("move denied")
 
     monkeypatch.setattr("file_organizer.organizer.shutil.move", fail_move)
-    result = move_files([plan], output=lambda message: None)
+    errors: list[str] = []
+    result = move_files([plan], output=lambda message: None, error_output=errors.append)
 
     assert source.exists()
     assert result.failed == 1
     assert result.moved == 0
+    assert errors == ["ERROR    report.txt: move denied"]
 
 
 def test_deleted_file_during_classification_raises_clear_error(tmp_path: Path) -> None:
@@ -154,7 +168,7 @@ def test_deleted_file_during_classification_raises_clear_error(tmp_path: Path) -
     files = scan_files(tmp_path)
     source.unlink()
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ClassificationError, match="Could not classify"):
         plan_moves(files, Rule.SIZE)
 
 
@@ -168,6 +182,25 @@ def test_classification_uses_latest_file_metadata(tmp_path: Path) -> None:
     plans = plan_moves(files, Rule.SIZE)
 
     assert plans[0].destination.parent.name == "Medium (1-10MiB)"
+
+
+def test_same_file_object_is_always_skipped(tmp_path: Path) -> None:
+    source = tmp_path / "report.txt"
+    source.write_text("content", encoding="utf-8")
+    destination = tmp_path / "Documents" / source.name
+    destination.parent.mkdir()
+    try:
+        destination.hardlink_to(source)
+    except OSError:
+        pytest.skip("hard links are not available on this platform")
+
+    result = organize(tmp_path, conflict_strategy=ConflictStrategy.RENAME)
+
+    assert source.exists()
+    assert destination.exists()
+    assert result.skipped == 1
+    assert result.moved == 0
+    assert not (destination.parent / "report (1).txt").exists()
 
 
 def test_invalid_directory_has_clear_error(tmp_path: Path) -> None:

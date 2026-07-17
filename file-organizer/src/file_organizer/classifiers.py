@@ -6,6 +6,8 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
+from .exceptions import InvalidRuleError
+
 FILE_TYPE_MAP: dict[str, set[str]] = {
     "Images": {".bmp", ".gif", ".jpeg", ".jpg", ".png", ".tiff", ".webp"},
     "Videos": {".avi", ".flv", ".mkv", ".mov", ".mp4", ".wmv"},
@@ -45,7 +47,7 @@ def parse_rule(value: Rule | str) -> Rule:
     try:
         return Rule(value)
     except ValueError as exc:
-        raise ValueError(f"Unsupported organization rule: {value}") from exc
+        raise InvalidRuleError(value) from exc
 
 
 def classify_by_type(path: Path) -> str:

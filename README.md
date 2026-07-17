@@ -1,5 +1,8 @@
 # Automation Toolkit
 
+[![Tests](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml/badge.svg)](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml)
+[![Coverage threshold](https://img.shields.io/badge/coverage-85%25_minimum-brightgreen.svg)](file-organizer/pyproject.toml)
+
 A collection of practical Python command-line tools designed to replace repetitive file-management and operational workflows with predictable, reusable automation.
 
 ## Current Tool
@@ -12,7 +15,7 @@ Current capabilities include:
 
 - Organizing files by type, size, or modification year
 - Previewing planned changes with `--dry-run`
-- Skipping hidden files and all subdirectories
+- Skipping hidden files, symbolic links, and all subdirectories
 - Creating destination directories automatically
 - Handling filename conflicts with explicit `skip` and `rename` strategies
 - Preventing existing files from being overwritten
@@ -90,11 +93,12 @@ file-organizer ~/Downloads --dry-run
 Run the checks from [file-organizer/](file-organizer/):
 
 ```bash
-python3 -m pytest
 python3 -m ruff check src tests
+python3 -m ruff format --check src tests
+python3 -m pytest --cov=file_organizer --cov-report=term-missing --cov-fail-under=85
 ```
 
-The [GitHub Actions workflow](.github/workflows/file-organizer-ci.yml) runs these checks on Linux, macOS, and Windows.
+The [GitHub Actions workflow](.github/workflows/file-organizer-ci.yml) runs linting, formatting, tests, and the 85% coverage gate on Linux, macOS, and Windows.
 
 ## Roadmap
 

@@ -30,7 +30,9 @@ def test_invalid_directory_returns_application_error(
     exit_code = cli.main([str(tmp_path / "missing")])
 
     assert exit_code == 2
-    assert "Directory does not exist" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "Directory does not exist" in captured.err
+    assert "Directory does not exist" not in captured.out
 
 
 def test_successful_execution_returns_zero(tmp_path: Path) -> None:
@@ -50,7 +52,9 @@ def test_file_move_failure_returns_one(
     monkeypatch.setattr("file_organizer.organizer.shutil.move", fail_move)
 
     assert cli.main([str(tmp_path)]) == 1
-    assert "move denied" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "move denied" in captured.err
+    assert "move denied" not in captured.out
 
 
 def test_application_error_returns_two(
@@ -64,4 +68,6 @@ def test_application_error_returns_two(
     monkeypatch.setattr(cli, "organize", fail_organize)
 
     assert cli.main([str(tmp_path)]) == 2
-    assert "application failure" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "application failure" in captured.err
+    assert "application failure" not in captured.out
