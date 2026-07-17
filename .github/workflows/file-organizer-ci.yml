@@ -1,6 +1,7 @@
 name: File Organizer CI
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "file-organizer/**"

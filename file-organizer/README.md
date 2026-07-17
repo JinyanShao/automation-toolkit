@@ -116,6 +116,7 @@ file-organizer/
 │   ├── classifiers.py
 │   └── exceptions.py
 ├── tests/
+│   ├── test_cli.py
 │   ├── test_organizer.py
 │   └── test_classifiers.py
 ├── README.md

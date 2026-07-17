@@ -20,6 +20,7 @@ from file_organizer.classifiers import (
         ("report.pdf", "Documents"),
         ("program.py", "Code"),
         ("README", "Others"),
+        ("archive.tar.gz", "Archives"),
     ],
 )
 def test_classify_by_type(filename: str, expected: str) -> None:
