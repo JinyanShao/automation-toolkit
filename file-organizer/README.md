@@ -16,7 +16,8 @@ A small, reliable command-line tool that organizes the visible, top-level files 
 
 - Python 3.10 or newer
 - No runtime dependencies outside the Python standard library
-- pytest 8 or newer for development and tests
+- pytest 8 or newer for tests
+- Ruff for linting and import checks
 
 ## Installation
 
@@ -95,6 +96,14 @@ Run the test suite from this directory:
 ```bash
 python3 -m pytest
 ```
+
+Run Ruff against the package and tests:
+
+```bash
+python3 -m ruff check src tests
+```
+
+The repository's [GitHub Actions workflow](../.github/workflows/file-organizer-ci.yml) runs both checks on Linux, macOS, and Windows.
 
 The implementation is separated by responsibility:
 
