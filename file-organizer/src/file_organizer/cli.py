@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
-from .classifiers import RULES
+from .classifiers import Rule
 from .exceptions import FileOrganizerError
-from .organizer import organize
+from .organizer import ConflictStrategy, organize
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -22,8 +23,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--rule",
-        choices=RULES,
-        default="type",
+        choices=tuple(rule.value for rule in Rule),
+        default=Rule.TYPE.value,
         help="classification rule (default: type)",
     )
     parser.add_argument(
@@ -33,8 +34,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--conflict",
-        choices=("skip", "rename"),
-        default="skip",
+        choices=tuple(strategy.value for strategy in ConflictStrategy),
+        default=ConflictStrategy.SKIP.value,
         help="handle an existing destination by skipping or adding a number (default: skip)",
     )
     return parser
@@ -53,7 +54,7 @@ def main(argv: list[str] | None = None) -> int:
             conflict_strategy=args.conflict,
         )
     except (FileOrganizerError, OSError) as exc:
-        print(f"ERROR: {exc}")
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
     print(

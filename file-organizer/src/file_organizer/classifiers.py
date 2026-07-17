@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
+
+from .exceptions import InvalidRuleError
 
 FILE_TYPE_MAP: dict[str, set[str]] = {
     "Images": {".bmp", ".gif", ".jpeg", ".jpg", ".png", ".tiff", ".webp"},
@@ -26,7 +29,25 @@ FILE_TYPE_MAP: dict[str, set[str]] = {
 
 ONE_MIB = 1024 * 1024
 TEN_MIB = 10 * ONE_MIB
-RULES = ("type", "size", "year")
+
+
+class Rule(str, Enum):
+    """Supported file classification rules."""
+
+    TYPE = "type"
+    SIZE = "size"
+    YEAR = "year"
+
+    def __str__(self) -> str:
+        return self.value
+
+
+def parse_rule(value: Rule | str) -> Rule:
+    """Return a validated classification rule."""
+    try:
+        return Rule(value)
+    except ValueError as exc:
+        raise InvalidRuleError(value) from exc
 
 
 def classify_by_type(path: Path) -> str:
@@ -53,15 +74,11 @@ def classify_by_year(path: Path) -> str:
     return str(datetime.fromtimestamp(path.stat().st_mtime).year)
 
 
-def classify_file(path: Path, rule: str) -> str:
+def classify_file(path: Path, rule: Rule | str) -> str:
     """Apply a named classification rule to a file."""
     classifiers = {
-        "type": classify_by_type,
-        "size": classify_by_size,
-        "year": classify_by_year,
+        Rule.TYPE: classify_by_type,
+        Rule.SIZE: classify_by_size,
+        Rule.YEAR: classify_by_year,
     }
-    try:
-        classifier = classifiers[rule]
-    except KeyError as exc:
-        raise ValueError(f"Unsupported organization rule: {rule}") from exc
-    return classifier(path)
+    return classifiers[parse_rule(rule)](path)
