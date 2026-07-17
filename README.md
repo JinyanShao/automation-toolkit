@@ -55,7 +55,10 @@ automation-toolkit/
 │   ├── tests/
 │   ├── README.md
 │   └── pyproject.toml
+├── .editorconfig
 ├── .gitignore
+├── CHANGELOG.md
+├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
 ```
@@ -67,7 +70,10 @@ Important paths:
 - [file-organizer/src/file_organizer/](file-organizer/src/file_organizer/) contains its Python package.
 - [file-organizer/tests/](file-organizer/tests/) contains its pytest suite.
 - [file-organizer/pyproject.toml](file-organizer/pyproject.toml) defines packaging and development dependencies.
+- [.editorconfig](.editorconfig) defines shared editor formatting defaults.
 - [.gitignore](.gitignore) defines generated files excluded from version control.
+- [CHANGELOG.md](CHANGELOG.md) records notable release changes.
+- [CONTRIBUTING.md](CONTRIBUTING.md) explains the contribution workflow and quality checks.
 - [LICENSE](LICENSE) contains the MIT License.
 
 Each tool is maintained in its own directory with dedicated documentation, tests, and dependency information.
