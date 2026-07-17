@@ -12,11 +12,11 @@ A command-line utility that organizes files within a selected directory accordin
 
 Current capabilities include:
 
-* Organizing files by file type
-* Organizing files by file size
-* Creating destination directories automatically
-* Handling unsupported or unexpected files safely
-* Preventing common file-operation errors
+- Organizing files by file type
+- Organizing files by file size
+- Creating destination directories automatically
+- Handling unsupported or unexpected files safely
+- Preventing common file-operation errors
 
 See the file-organizer directory for usage instructions and implementation details.
 
@@ -24,8 +24,14 @@ Project Structure
 
 automation-toolkit/
 ├── file-organizer/
-│   ├── README.md
-│   └── ...
+├── csv-cleaner/
+├── log-analyzer/
+├── batch-renamer/
+├── shared/
+├── tests/
+├── .github/
+│   └── workflows/
+├── pyproject.toml
 ├── .gitignore
 ├── LICENSE
 └── README.md
@@ -47,33 +53,33 @@ Development Principles
 
 The tools in this repository are developed with the following principles:
 
-* Clear and focused responsibilities
-* Simple command-line interfaces
-* Safe file and data handling
-* Readable and maintainable Python code
-* Useful error messages
-* Minimal external dependencies
-* Documentation for installation and usage
+- Clear and focused responsibilities
+- Simple command-line interfaces
+- Safe file and data handling
+- Readable and maintainable Python code
+- Useful error messages
+- Minimal external dependencies
+- Documentation for installation and usage
 
 Planned Improvements
 
 Future development may include:
 
-* Dry-run support for previewing file operations
-* Configurable organization rules
-* Structured logging
-* Automated tests
-* Cross-platform validation
-* Additional workflow-automation utilities
+- Dry-run support for previewing file operations
+- Configurable organization rules
+- Structured logging
+- Automated tests
+- Cross-platform validation
+- Additional workflow-automation utilities
 
 Features will be added only when they represent a practical and clearly defined automation use case.
 
 Technology
 
-* Python 3
-* Python standard library
-* Command-line interfaces
-* File-system automation
+- Python 3
+- Python standard library
+- Command-line interfaces
+- File-system automation
 
 License
 
