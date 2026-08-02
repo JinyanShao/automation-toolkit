@@ -1,149 +1,220 @@
 # Automation Toolkit
 
-[![Tests](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml/badge.svg)](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.14-blue.svg)](file-organizer/pyproject.toml)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Coverage threshold](https://img.shields.io/badge/coverage-85%25_minimum-brightgreen.svg)](file-organizer/pyproject.toml)
+Practical Python command-line tools for safe, repeatable file-management and workflow-automation tasks.
 
-Practical Python command-line tools for safe file management and repeatable workflow automation.
+## Overview
 
-## Core Features
+Automation Toolkit is an automation-tool collection designed to help users perform routine local file operations safely from the command line. The current release contains the File Organizer tool.
 
-- Safe, non-recursive file organization by type, size, or modification year
-- Dry-run previews before any directory is created or file is moved
-- Explicit filename conflict handling without overwriting existing content
-- Cross-platform tests on Ubuntu, macOS, and Windows
+The project focuses on:
 
-## Quick Example
+* Predictable organization of visible top-level files
+* Dry-run previews before any filesystem change
+* Explicit conflict handling without overwriting data
+* Cross-platform tests and quality checks
 
-```bash
-cd file-organizer
-python3 -m pip install -e .
-file-organizer ~/Downloads --dry-run
+## Problem
+
+Downloads and working folders quickly become difficult to manage. Manual sorting is repetitive, while a careless automation script can overwrite files, move hidden data, or recursively reorganize content the user did not intend to touch.
+
+Small command-line automations need clear scopes, understandable outcomes, and safeguards that make changes reviewable before execution.
+
+Typical challenges include:
+
+* Repetitive manual file sorting
+* Accidental overwrites during filename conflicts
+* Hidden files, symlinks, or nested folders being handled unexpectedly
+* Different filesystem behavior across operating systems
+
+## Solution
+
+The system addresses these challenges by providing:
+
+* File organization by type, size, or modification year
+* A `--dry-run` preview mode before files are moved
+* Explicit `skip` and `rename` conflict strategies with no overwrite behavior
+* Cross-platform validation on Linux, macOS, and Windows
+
+## Current Status
+
+### Implemented
+
+* File Organizer command-line package for visible, top-level files
+* Dry-run reporting, automatic destination directories, and result summaries
+* Safe handling of hidden files, symbolic links, subdirectories, and filename conflicts
+* pytest, Ruff, coverage threshold, and GitHub Actions checks
+
+### In Progress
+
+* Continued stabilization of File Organizer behavior across supported platforms
+
+### Planned
+
+* A Log Analyzer tool after its workflow is specified
+* A CSV Cleaner tool after its interface is specified
+
+Planned capabilities are not included in the current release unless explicitly marked as implemented.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    User[Command-line user] --> CLI[File Organizer CLI]
+    CLI --> Planner[Planning and validation]
+    Planner --> FS[(Local file system)]
+    Planner --> Reporter[Dry-run or operation report]
+    Planner --> Executor[Safe move executor]
+    Executor --> FS
 ```
 
-## Current Tool
+### Main Components
 
-### File Organizer
+| Component | Responsibility |
+| --- | --- |
+| Command-line interface | Receives directory, organization mode, and conflict strategy |
+| Planner | Inspects eligible files and creates a safe operation plan |
+| File-system layer | Creates directories and moves only approved visible top-level files |
+| Reporter | Summarizes planned, moved, skipped, and failed operations |
+| Test suite | Verifies behavior across supported operating systems |
 
-[File Organizer](file-organizer/) safely organizes the visible, top-level files in a selected directory.
+## Key Engineering Decisions
 
-Current capabilities include:
+### Non-recursive, visible-file scope
 
-- Organizing files by type, size, or modification year
-- Previewing planned changes with `--dry-run`
-- Skipping hidden files, symbolic links, and all subdirectories
-- Creating destination directories automatically
-- Handling filename conflicts with explicit `skip` and `rename` strategies
-- Preventing existing files from being overwritten
-- Reporting planned, moved, skipped, and failed operations clearly
+**Decision:** The File Organizer only processes visible files in the selected directory's top level.
 
-See the [File Organizer documentation](file-organizer/README.md) for installation, usage, and development instructions.
+**Reason:** A narrow default avoids surprising changes to nested content, hidden files, and symbolic links.
 
-## Project Structure
+**Trade-off:** Users who need recursive organization must use a different tool or workflow.
 
-This tree shows only files and directories that currently exist:
+### Dry run and explicit conflict strategies
+
+**Decision:** Operations can be previewed and conflicts require `skip` or `rename` behavior rather than overwriting files.
+
+**Reason:** Filesystem automation should be reviewable and preserve existing content.
+
+**Trade-off:** A real run may require additional user choices when destination names collide.
+
+## Technology Stack
+
+| Area | Technology |
+| --- | --- |
+| Language | Python 3.10+ |
+| Framework | None; argparse command-line interface |
+| Database | None |
+| Testing | pytest, pytest-cov, Ruff |
+| Packaging | Python package |
+| CI/CD | GitHub Actions on Ubuntu, macOS, and Windows |
+
+## Repository Structure
 
 ```text
-automation-toolkit/
-├── .github/
-│   └── workflows/
-│       └── file-organizer-ci.yml
+.
 ├── file-organizer/
-│   ├── src/
-│   │   └── file_organizer/
-│   ├── tests/
-│   ├── README.md
+│   ├── src/file_organizer/  # Python package
+│   ├── tests/               # Automated tests
+│   ├── README.md            # Tool-specific usage documentation
 │   └── pyproject.toml
-├── .editorconfig
-├── .gitignore
-├── CHANGELOG.md
+├── .github/workflows/       # Continuous integration
 ├── CONTRIBUTING.md
-├── LICENSE
+├── CHANGELOG.md
 └── README.md
 ```
 
-Important paths:
-
-- [.github/workflows/](.github/workflows/) contains continuous-integration workflows.
-- [file-organizer/](file-organizer/) contains the current command-line tool.
-- [file-organizer/src/file_organizer/](file-organizer/src/file_organizer/) contains its Python package.
-- [file-organizer/tests/](file-organizer/tests/) contains its pytest suite.
-- [file-organizer/pyproject.toml](file-organizer/pyproject.toml) defines packaging and development dependencies.
-- [.editorconfig](.editorconfig) defines shared editor formatting defaults.
-- [.gitignore](.gitignore) defines generated files excluded from version control.
-- [CHANGELOG.md](CHANGELOG.md) records notable release changes.
-- [CONTRIBUTING.md](CONTRIBUTING.md) explains the contribution workflow and quality checks.
-- [LICENSE](LICENSE) contains the MIT License.
-
-Each tool is maintained in its own directory with dedicated documentation, tests, and dependency information.
-
 ## Getting Started
 
-Clone the repository:
+### Prerequisites
+
+* Python 3.10+
+* Git
+
+### Installation
 
 ```bash
 git clone https://github.com/JinyanShao/automation-toolkit.git
-cd automation-toolkit
-```
-
-Open the current tool and install its development dependencies:
-
-```bash
-cd file-organizer
+cd automation-toolkit/file-organizer
 python3 -m pip install -e '.[dev]'
 ```
 
-Preview an organization run before changing any files:
+### Configuration
+
+No credentials or environment configuration are required.
+
+### Run Locally
+
+Preview a safe organization run before changing files:
 
 ```bash
 file-organizer ~/Downloads --dry-run
 ```
 
-## Development Principles
+## Testing
 
-- Clear and focused responsibilities
-- Simple command-line interfaces
-- Safe file and data handling
-- Readable and maintainable Python code
-- Useful error messages and operation summaries
-- Minimal runtime dependencies
-- Automated tests and cross-platform validation
-- Documentation for installation and usage
+Run the complete automated test suite:
 
-## Quality Checks
+```bash
+cd file-organizer
+python3 -m pytest --cov=file_organizer --cov-report=term-missing --cov-fail-under=85
+```
 
-Run the checks from [file-organizer/](file-organizer/):
+Run quality checks:
 
 ```bash
 python3 -m ruff check src tests
 python3 -m ruff format --check src tests
-python3 -m pytest --cov=file_organizer --cov-report=term-missing --cov-fail-under=85
 ```
 
-The [GitHub Actions workflow](.github/workflows/file-organizer-ci.yml) runs linting, formatting, tests, and the 85% coverage gate on Linux, macOS, and Windows.
+## Example Workflow
+
+1. A user selects a directory such as `~/Downloads`.
+2. The tool inspects only visible top-level files and creates an operation plan.
+3. `--dry-run` reports the intended moves without modifying files.
+4. A real run organizes eligible files according to the chosen mode.
+5. The tool reports moved, skipped, and failed operations without overwriting existing files.
+
+## Reliability and Safety
+
+The project includes the following reliability measures where applicable:
+
+* Narrow non-recursive scope
+* Dry-run previews and explicit conflict strategies
+* Hidden-file, symlink, and subdirectory safeguards
+* Automated unit tests and cross-platform CI
+* Clear operation summaries and no committed credentials
+
+## Limitations
+
+The current version does not yet include:
+
+* Recursive directory organization
+* A graphical user interface
+* Implemented Log Analyzer or CSV Cleaner tools
+
+These limitations are documented intentionally to distinguish implemented functionality from future work.
 
 ## Roadmap
 
-- Continue stabilizing File Organizer across supported platforms.
-- Define and develop Log Analyzer as the next practical tool.
-- Consider CSV Cleaner after its workflow and interface are clearly specified.
+* [ ] Continue stabilizing File Organizer across supported platforms
+* [ ] Define and implement a Log Analyzer workflow
+* [ ] Define and implement a CSV Cleaner workflow
 
-Planned tools remain roadmap items until working implementations exist.
+## Documentation
 
-## Technology
+Additional documentation is available in the repository:
 
-- Python 3.10+
-- Python standard library
-- `argparse` command-line interfaces
-- `pathlib` file-system operations
-- pytest and Ruff for quality checks
-- GitHub Actions for cross-platform validation
+* File Organizer installation and usage guide
+* Contribution workflow and quality checks
+* Changelog
 
-## License
+## Licence
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the MIT License. See `LICENSE` for details.
 
 ## Author
 
-Developed by JinyanShao.
+Jinyan Shao<br>
+Software Engineer — Business Applications, Backend and Automation
+
+* Website: [https://jinyanshao.ch](https://jinyanshao.ch/)
+* GitHub: [https://github.com/JinyanShao](https://github.com/JinyanShao)
+* LinkedIn: [https://www.linkedin.com/in/jinyanshao/](https://www.linkedin.com/in/jinyanshao/)
