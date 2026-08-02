@@ -1,5 +1,8 @@
 # Automation Toolkit
 
+[![CI](https://github.com/JinyanShao/automation-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/JinyanShao/automation-toolkit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-10212c.svg)](LICENSE)
+
 Practical Python command-line tools for safe, repeatable file-management and workflow-automation tasks.
 
 ## Overview

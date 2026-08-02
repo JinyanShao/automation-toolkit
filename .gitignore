@@ -19,3 +19,4 @@ env/
 
 # Project specific ignores (for test files, etc.)
 file-organizer/test_files/
+.DS_Store
