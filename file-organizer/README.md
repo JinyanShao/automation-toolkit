@@ -3,7 +3,7 @@
 [![Tests](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml/badge.svg)](https://github.com/JinyanShao/automation-toolkit/actions/workflows/file-organizer-ci.yml)
 [![Coverage threshold](https://img.shields.io/badge/coverage-85%25_minimum-brightgreen.svg)](pyproject.toml)
 
-A small, reliable command-line tool that organizes the visible, top-level files in a directory. It supports classification by file type, file size, or modification year and never overwrites an existing file.
+A command-line tool that organizes visible, top-level files by type, size, or modification year. It creates each destination without replacing an existing entry.
 
 ## Safety behavior
 
@@ -15,8 +15,9 @@ A small, reliable command-line tool that organizes the visible, top-level files 
 - Existing destination files are skipped by default.
 - `--conflict rename` preserves both files by choosing names such as `report (1).txt`.
 - A source and destination that refer to the same file object are always skipped.
-- The destination is checked again immediately before each move to reduce overwrite risk.
-- Existing destination content is never overwritten by any conflict strategy.
+- Destination entries are created atomically without replacing an existing file, including when another process creates the name after planning.
+- On POSIX, category directories are opened without following symbolic links; a symbolic-link category directory fails closed and leaves the source in place.
+- Moves create a hard link at the destination before removing the source name. If hard links are unavailable or the destination is on another filesystem, the move fails and the source is retained.
 
 ## Reversibility
 
@@ -137,7 +138,7 @@ The hidden file and existing directory remain unchanged.
 | `skip` | Default. Leave the source and existing destination unchanged. |
 | `rename` | Move the source using the first available numbered filename. |
 
-No strategy overwrites an existing destination.
+No strategy overwrites an existing destination. If a chosen name becomes occupied after planning, that file is skipped and reported; the rename strategy does not select another name during the same run.
 
 ## Exit Codes
 
@@ -155,7 +156,8 @@ No strategy overwrites an existing destination.
 - Year classification uses the file's modification year in the local timezone.
 - Size thresholds use binary units: 1 MiB equals 1,048,576 bytes.
 - Rules and file-type mappings are defined by the package and are not loaded from a user configuration file.
-- Concurrent filesystem changes can cause a file to be skipped or reported as failed.
+- Concurrent filesystem changes can cause a file to be skipped or reported as failed. Destination file creation is atomic and never replaces a concurrently created file.
+- On platforms without directory-descriptor support, the category symlink check is path-based; avoid organizing in a directory another process can actively rewrite.
 - The tool does not produce an operation report, recovery log, or automatic undo record.
 
 ## Development

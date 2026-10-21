@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-import shutil
+import errno
+import os
 import sys
 from dataclasses import dataclass
 from enum import Enum
@@ -82,6 +83,8 @@ def _normalized_path(path: Path) -> str:
 
 def _existing_destination(destination: Path) -> Path | None:
     """Return an exact or case-insensitive existing destination."""
+    if destination.parent.is_symlink():
+        return None
     if destination.exists():
         return destination
     if not destination.parent.is_dir():
@@ -102,6 +105,83 @@ def _same_file(source: Path, destination: Path) -> bool:
 
 def _print_error(message: str) -> None:
     print(message, file=sys.stderr)
+
+
+def _move_without_overwrite(source: Path, destination: Path) -> None:
+    """Create the destination atomically, then remove the source name.
+
+    Directory descriptors and O_NOFOLLOW pin the category directory on POSIX.
+    The path-based fallback retains atomic no-replace file creation on platforms
+    without dir_fd support and rejects a category directory that is already a link.
+    """
+    source_directory = source.parent.resolve(strict=True)
+    destination_root = destination.parent.parent.resolve(strict=True)
+    if source_directory != destination_root:
+        raise OSError(
+            errno.EPERM, "destination must be a direct category directory", str(destination)
+        )
+
+    directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    no_follow = getattr(os, "O_NOFOLLOW", 0)
+    supports_directory_descriptors = (
+        os.name == "posix"
+        and no_follow
+        and os.open in os.supports_dir_fd
+        and os.mkdir in os.supports_dir_fd
+        and os.link in os.supports_dir_fd
+        and os.unlink in os.supports_dir_fd
+        and os.link in os.supports_follow_symlinks
+    )
+
+    if supports_directory_descriptors:
+        source_fd = os.open(source_directory, directory_flags | no_follow)
+        try:
+            try:
+                os.mkdir(destination.parent.name, dir_fd=source_fd)
+            except FileExistsError:
+                pass
+
+            destination_fd = os.open(
+                destination.parent.name,
+                directory_flags | no_follow,
+                dir_fd=source_fd,
+            )
+            try:
+                os.link(
+                    source.name,
+                    destination.name,
+                    src_dir_fd=source_fd,
+                    dst_dir_fd=destination_fd,
+                    follow_symlinks=False,
+                )
+                os.unlink(source.name, dir_fd=source_fd)
+            finally:
+                os.close(destination_fd)
+        finally:
+            os.close(source_fd)
+        return
+
+    destination_directory = destination.parent
+    if destination_directory.is_symlink():
+        raise OSError(
+            errno.ELOOP,
+            "symbolic-link category directories are not supported",
+            str(destination_directory),
+        )
+    destination_directory.mkdir(parents=True, exist_ok=True)
+    if destination_directory.is_symlink():
+        raise OSError(
+            errno.ELOOP,
+            "symbolic-link category directories are not supported",
+            str(destination_directory),
+        )
+    if destination_directory.resolve(strict=True).parent != source_directory:
+        raise OSError(
+            errno.EPERM, "destination escaped the selected directory", str(destination_directory)
+        )
+
+    os.link(source, destination, follow_symlinks=False)
+    source.unlink()
 
 
 def _renamed_destination(destination: Path, reserved: set[str]) -> Path:
@@ -176,20 +256,11 @@ def move_files(
             continue
 
         try:
-            plan.destination.parent.mkdir(parents=True, exist_ok=True)
-            # Recheck immediately before moving to prevent accidental overwrite.
-            existing_destination = _existing_destination(plan.destination)
-            if existing_destination is not None:
-                reason = (
-                    "source and destination are the same file"
-                    if _same_file(plan.source, existing_destination)
-                    else "destination appeared during run"
-                )
-                output(f"SKIP     {plan.source.name} ({reason})")
-                skipped += 1
-                continue
-            shutil.move(str(plan.source), str(plan.destination))
+            _move_without_overwrite(plan.source, plan.destination)
             moved += 1
+        except FileExistsError:
+            output(f"SKIP     {plan.source.name} (destination appeared during run)")
+            skipped += 1
         except OSError as exc:
             error_output(f"ERROR    {plan.source.name}: {exc}")
             failed += 1

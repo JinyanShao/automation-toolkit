@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -127,6 +128,54 @@ def test_case_only_conflict_is_skipped(tmp_path: Path) -> None:
     assert result.skipped == 1
 
 
+def test_destination_directory_symlink_is_rejected_without_moving_file(tmp_path: Path) -> None:
+    source = tmp_path / "report.txt"
+    source.write_text("content", encoding="utf-8")
+    outside = tmp_path.parent / f"{tmp_path.name}-outside"
+    outside.mkdir()
+    category = tmp_path / "Documents"
+    try:
+        category.symlink_to(outside, target_is_directory=True)
+    except OSError:
+        pytest.skip("directory symbolic links are not available on this platform")
+
+    errors: list[str] = []
+    result = organize(tmp_path, output=lambda message: None, error_output=errors.append)
+
+    assert source.read_text(encoding="utf-8") == "content"
+    assert list(outside.iterdir()) == []
+    assert result.failed == 1
+    assert result.moved == 0
+    assert errors
+    outside.rmdir()
+
+
+def test_destination_created_after_planning_is_never_overwritten(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "report.txt"
+    source.write_text("source", encoding="utf-8")
+    plans = plan_moves(scan_files(tmp_path), Rule.TYPE)
+    destination = plans[0].destination
+    original_link = os.link
+
+    def create_destination_then_link(*args: object, **kwargs: object) -> None:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text("concurrent file", encoding="utf-8")
+        original_link(*args, **kwargs)
+
+    monkeypatch.setattr("file_organizer.organizer.os.link", create_destination_then_link)
+    messages: list[str] = []
+    result = move_files(plans, output=messages.append)
+
+    assert source.read_text(encoding="utf-8") == "source"
+    assert destination.read_text(encoding="utf-8") == "concurrent file"
+    assert result.skipped == 1
+    assert result.moved == 0
+    assert "destination appeared during run" in messages[-1]
+    destination.unlink()
+
+
 def test_invalid_conflict_strategy_is_rejected_for_empty_plan() -> None:
     with pytest.raises(ValueError, match="Unsupported conflict strategy"):
         plan_moves([], Rule.TYPE, "overwrite")
@@ -149,10 +198,10 @@ def test_move_failure_is_reported_without_losing_source(
     source.write_text("content", encoding="utf-8")
     plan = MovePlan(source, tmp_path / "Documents" / source.name)
 
-    def fail_move(source_path: str, destination_path: str) -> None:
+    def fail_move(*args: object, **kwargs: object) -> None:
         raise PermissionError("move denied")
 
-    monkeypatch.setattr("file_organizer.organizer.shutil.move", fail_move)
+    monkeypatch.setattr("file_organizer.organizer.os.link", fail_move)
     errors: list[str] = []
     result = move_files([plan], output=lambda message: None, error_output=errors.append)
 
