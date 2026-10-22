@@ -46,10 +46,10 @@ def test_file_move_failure_returns_one(
 ) -> None:
     (tmp_path / "report.txt").write_text("content", encoding="utf-8")
 
-    def fail_move(source: str, destination: str) -> None:
+    def fail_move(*args: object, **kwargs: object) -> None:
         raise PermissionError("move denied")
 
-    monkeypatch.setattr("file_organizer.organizer.shutil.move", fail_move)
+    monkeypatch.setattr("file_organizer.organizer.os.link", fail_move)
 
     assert cli.main([str(tmp_path)]) == 1
     captured = capsys.readouterr()
